@@ -1,0 +1,10 @@
+require("./User");
+require("./Doctor");
+require("./Patient");
+require("./Booking");
+require("./Payment");
+require("./Prescription");
+require("./Review");
+require("./Notification");
+require("./DoctorLocation");
+require("./AuditLog");

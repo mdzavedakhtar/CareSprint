@@ -3,13 +3,22 @@ const cors = require("cors");
 const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
+const mongoose = require("mongoose");
+
+require("./models");
 
 const app = express();
 
+// ==========================================
 // Security
+// ==========================================
+
 app.use(helmet());
 
+// ==========================================
 // CORS
+// ==========================================
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -17,14 +26,23 @@ app.use(
   })
 );
 
-// Body parser
+// ==========================================
+// Body Parser
+// ==========================================
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
+// ==========================================
 // Cookies
+// ==========================================
+
 app.use(cookieParser());
 
-// Basic rate limiting
+// ==========================================
+// Rate Limiting
+// ==========================================
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 200,
@@ -34,7 +52,10 @@ const limiter = rateLimit({
 
 app.use("/api", limiter);
 
-// Health check
+// ==========================================
+// Basic API Health Check
+// ==========================================
+
 app.get("/api/v1/health", (req, res) => {
   res.status(200).json({
     success: true,
@@ -43,7 +64,34 @@ app.get("/api/v1/health", (req, res) => {
   });
 });
 
-// 404
+// ==========================================
+// MongoDB Database Health Check
+// ==========================================
+
+app.get("/api/v1/db-health", (req, res) => {
+  const state = mongoose.connection.readyState;
+
+  if (state === 1) {
+    return res.status(200).json({
+      success: true,
+      database: "MongoDB",
+      status: "connected",
+      databaseName: mongoose.connection.name,
+      host: mongoose.connection.host,
+    });
+  }
+
+  return res.status(503).json({
+    success: false,
+    database: "MongoDB",
+    status: "disconnected",
+  });
+});
+
+// ==========================================
+// 404 Handler
+// ==========================================
+
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -51,7 +99,10 @@ app.use((req, res) => {
   });
 });
 
-// Global error handler
+// ==========================================
+// Global Error Handler
+// ==========================================
+
 app.use((err, req, res, next) => {
   console.error(err);
 
