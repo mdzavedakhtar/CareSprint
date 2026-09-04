@@ -8,3 +8,4 @@ require("./Review");
 require("./Notification");
 require("./DoctorLocation");
 require("./AuditLog");
+require("./OTP");

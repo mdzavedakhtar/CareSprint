@@ -7,61 +7,59 @@ const doctorSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
+      index: true,
     },
 
     specialization: {
       type: String,
-      required: true,
+      required: [true, "Specialization is required"],
       trim: true,
     },
 
     qualification: {
       type: String,
-      required: true,
+      required: [true, "Qualification is required"],
       trim: true,
     },
 
     experience: {
       type: Number,
-      required: true,
+      required: [true, "Experience is required"],
       min: 0,
+      max: 60,
     },
 
     consultationFee: {
       type: Number,
-      required: true,
+      required: [true, "Consultation fee is required"],
       min: 0,
-      default: 499,
     },
 
     licenseNumber: {
       type: String,
-      required: true,
+      required: [true, "Medical license number is required"],
       unique: true,
       trim: true,
+      uppercase: true,
     },
 
     verificationStatus: {
       type: String,
-      enum: [
-        "PENDING",
-        "UNDER_REVIEW",
-        "APPROVED",
-        "REJECTED",
-        "SUSPENDED",
-      ],
+      enum: ["PENDING", "APPROVED", "REJECTED"],
       default: "PENDING",
+      index: true,
     },
 
     availabilityStatus: {
       type: String,
       enum: ["OFFLINE", "AVAILABLE", "BUSY"],
       default: "OFFLINE",
+      index: true,
     },
 
     serviceRadius: {
       type: Number,
-      default: 5,
+      default: 10,
       min: 1,
       max: 50,
     },
@@ -73,52 +71,33 @@ const doctorSchema = new mongoose.Schema(
       max: 5,
     },
 
-    totalReviews: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
-    totalConsultations: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
     location: {
       type: {
         type: String,
         enum: ["Point"],
+        default: "Point",
       },
-
       coordinates: {
         type: [Number],
+        default: [0, 0],
       },
     },
 
-    verificationDocuments: [
-      {
-        type: {
-          type: String,
-          enum: [
-            "MEDICAL_LICENSE",
-            "DEGREE",
-            "IDENTITY_PROOF",
-            "OTHER",
-          ],
-        },
+    verificationNotes: {
+      type: String,
+      default: null,
+    },
 
-        url: {
-          type: String,
-          trim: true,
-        },
+    verifiedAt: {
+      type: Date,
+      default: null,
+    },
 
-        publicId: {
-          type: String,
-          trim: true,
-        },
-      },
-    ],
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
   },
   {
     timestamps: true,

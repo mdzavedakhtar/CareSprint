@@ -4,6 +4,8 @@ const helmet = require("helmet");
 const cookieParser = require("cookie-parser");
 const rateLimit = require("express-rate-limit");
 const mongoose = require("mongoose");
+const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
 
 require("./models");
 
@@ -52,6 +54,8 @@ const limiter = rateLimit({
 
 app.use("/api", limiter);
 
+app.use("/api/v1/auth", authRoutes);
+
 // ==========================================
 // Basic API Health Check
 // ==========================================
@@ -63,6 +67,8 @@ app.get("/api/v1/health", (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+app.use("/api/v1/admin", adminRoutes);
 
 // ==========================================
 // MongoDB Database Health Check
