@@ -1,7 +1,61 @@
 const mongoose = require("mongoose");
 
+// ======================================================
+// VERIFICATION DOCUMENT SCHEMA
+// ======================================================
+
+const verificationDocumentSchema = new mongoose.Schema(
+  {
+    documentType: {
+      type: String,
+      enum: [
+        "MEDICAL_LICENSE",
+        "DEGREE_CERTIFICATE",
+        "IDENTITY_PROOF",
+        "OTHER",
+      ],
+      required: true,
+    },
+
+    documentNumber: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    documentUrl: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    documentName: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    status: {
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED"],
+      default: "PENDING",
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// ======================================================
+// DOCTOR SCHEMA
+// ======================================================
+
 const doctorSchema = new mongoose.Schema(
   {
+    // --------------------------------------------------
+    // USER REFERENCE
+    // --------------------------------------------------
+
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -9,6 +63,10 @@ const doctorSchema = new mongoose.Schema(
       unique: true,
       index: true,
     },
+
+    // --------------------------------------------------
+    // PROFESSIONAL DETAILS
+    // --------------------------------------------------
 
     specialization: {
       type: String,
@@ -43,6 +101,10 @@ const doctorSchema = new mongoose.Schema(
       uppercase: true,
     },
 
+    // --------------------------------------------------
+    // VERIFICATION
+    // --------------------------------------------------
+
     verificationStatus: {
       type: String,
       enum: ["PENDING", "APPROVED", "REJECTED"],
@@ -50,37 +112,9 @@ const doctorSchema = new mongoose.Schema(
       index: true,
     },
 
-    availabilityStatus: {
-      type: String,
-      enum: ["OFFLINE", "AVAILABLE", "BUSY"],
-      default: "OFFLINE",
-      index: true,
-    },
-
-    serviceRadius: {
-      type: Number,
-      default: 10,
-      min: 1,
-      max: 50,
-    },
-
-    rating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-
-    location: {
-      type: {
-        type: String,
-        enum: ["Point"],
-        default: "Point",
-      },
-      coordinates: {
-        type: [Number],
-        default: [0, 0],
-      },
+    verificationDocuments: {
+      type: [verificationDocumentSchema],
+      default: [],
     },
 
     verificationNotes: {
@@ -98,13 +132,70 @@ const doctorSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+
+    // --------------------------------------------------
+    // AVAILABILITY
+    // --------------------------------------------------
+
+    availabilityStatus: {
+      type: String,
+      enum: ["OFFLINE", "AVAILABLE", "BUSY"],
+      default: "OFFLINE",
+      index: true,
+    },
+
+    // --------------------------------------------------
+    // SERVICE AREA
+    // --------------------------------------------------
+
+    serviceRadius: {
+      type: Number,
+      default: 10,
+      min: 1,
+      max: 50,
+    },
+
+    // --------------------------------------------------
+    // RATING
+    // --------------------------------------------------
+
+    rating: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 5,
+    },
+
+    // --------------------------------------------------
+    // DOCTOR LOCATION
+    // --------------------------------------------------
+
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
+    },
   },
+
   {
     timestamps: true,
   }
 );
 
-doctorSchema.index({ location: "2dsphere" });
+// ======================================================
+// INDEXES
+// ======================================================
+
+doctorSchema.index({
+  location: "2dsphere",
+});
 
 doctorSchema.index({
   verificationStatus: 1,
@@ -115,5 +206,9 @@ doctorSchema.index({
   specialization: 1,
   verificationStatus: 1,
 });
+
+// ======================================================
+// MODEL
+// ======================================================
 
 module.exports = mongoose.model("Doctor", doctorSchema);

@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const doctorRoutes = require("./routes/doctorRoutes");
 
 require("./models");
 
@@ -55,6 +56,11 @@ const limiter = rateLimit({
 app.use("/api", limiter);
 
 app.use("/api/v1/auth", authRoutes);
+
+app.use(
+  "/api/v1/doctor",
+  doctorRoutes
+);
 
 // ==========================================
 // Basic API Health Check
