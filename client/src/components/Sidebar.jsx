@@ -6,7 +6,6 @@ import {
   FileText,
   User,
   Star,
-  MapPin,
   LogOut,
 } from "lucide-react";
 

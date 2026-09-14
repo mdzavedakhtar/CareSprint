@@ -1,16 +1,7 @@
-import axios from "axios";
-
-const API_URL =
-  import.meta.env.VITE_API_URL ||
-  "http://localhost:5000/api/v1";
-
-const doctorApi = axios.create({
-  baseURL: API_URL,
-  withCredentials: true,
-});
+import api from "../services/api";
 
 export const getDoctorDashboard = async () => {
-  const response = await doctorApi.get(
+  const response = await api.get(
     "/doctor/dashboard"
   );
 
@@ -18,7 +9,7 @@ export const getDoctorDashboard = async () => {
 };
 
 export const getDoctorProfile = async () => {
-  const response = await doctorApi.get(
+  const response = await api.get(
     "/doctor/profile"
   );
 
@@ -28,7 +19,7 @@ export const getDoctorProfile = async () => {
 export const updateDoctorAvailability = async (
   availabilityStatus
 ) => {
-  const response = await doctorApi.patch(
+  const response = await api.patch(
     "/doctor/availability",
     {
       availabilityStatus,
@@ -39,38 +30,34 @@ export const updateDoctorAvailability = async (
 };
 
 export const getDoctorRequests = async () => {
-  const response = await doctorApi.get(
+  const response = await api.get(
     "/doctor/requests"
   );
 
   return response.data;
 };
 
-export const respondToRequest = async (
-  bookingId,
-  action
-) => {
-  const response = await doctorApi.patch(
-    `/doctor/requests/${bookingId}`,
-    {
-      action,
-    }
-  );
+export const respondToRequest = async (bookingId, action) => {
+  const endpoint =
+    action === "ACCEPT"
+      ? `/doctor/requests/${bookingId}/accept`
+      : `/doctor/requests/${bookingId}/reject`;
 
+  const response = await api.patch(endpoint);
   return response.data;
 };
 
-export const updateVisitStatus = async (
-  bookingId,
-  status
-) => {
-  const response = await doctorApi.patch(
-    `/doctor/visits/${bookingId}/status`,
-    {
-      status,
-    }
-  );
+export const updateVisitStatus = async (bookingId, status) => {
+  let endpoint = `/doctor/visits/${bookingId}/start`;
+  if (status === "ARRIVED") {
+    endpoint = `/doctor/visits/${bookingId}/arrived`;
+  } else if (status === "CONSULTATION") {
+    endpoint = `/doctor/visits/${bookingId}/consultation`;
+  } else if (status === "COMPLETED") {
+    endpoint = `/doctor/visits/${bookingId}/complete`;
+  }
 
+  const response = await api.patch(endpoint);
   return response.data;
 };
 
@@ -78,7 +65,7 @@ export const createPrescription = async (
   bookingId,
   prescription
 ) => {
-  const response = await doctorApi.post(
+  const response = await api.post(
     `/doctor/visits/${bookingId}/prescription`,
     prescription
   );
@@ -87,7 +74,7 @@ export const createPrescription = async (
 };
 
 export const getDoctorEarnings = async () => {
-  const response = await doctorApi.get(
+  const response = await api.get(
     "/doctor/earnings"
   );
 
@@ -95,11 +82,11 @@ export const getDoctorEarnings = async () => {
 };
 
 export const getDoctorVisitHistory = async () => {
-  const response = await doctorApi.get(
+  const response = await api.get(
     "/doctor/history"
   );
 
   return response.data;
 };
 
-export default doctorApi;
+export default api;

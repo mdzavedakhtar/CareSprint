@@ -15,6 +15,18 @@ const paymentSchema = new mongoose.Schema(
       required: true,
     },
 
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Doctor",
+      default: null,
+      index: true,
+    },
+
+    verificationData: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
+
     amount: {
       type: Number,
       required: true,

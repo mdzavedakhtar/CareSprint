@@ -20,30 +20,32 @@ const Dashboard = () => {
   const [updating, setUpdating] = useState(false);
   const [error, setError] = useState("");
 
-  const loadDashboard = async () => {
-    try {
-      setLoading(true);
 
-      const result =
-        await getDoctorDashboard();
-
-      if (result.success) {
-        setData(result.dashboard);
-      } else {
-        setError(result.message);
-      }
-    } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          "Unable to load dashboard"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    loadDashboard();
+    let ignore = false;
+    getDoctorDashboard()
+      .then((result) => {
+        if (!ignore && result.success) {
+          setData(result.dashboard);
+        } else if (!ignore) {
+          setError(result.message);
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load dashboard"
+          );
+        }
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const toggleAvailability = async () => {

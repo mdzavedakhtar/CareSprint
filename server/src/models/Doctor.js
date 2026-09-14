@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 // ======================================================
-// VERIFICATION DOCUMENT SCHEMA
+// VERIFICATION DOCUMENT
 // ======================================================
 
 const verificationDocumentSchema = new mongoose.Schema(
@@ -47,13 +47,13 @@ const verificationDocumentSchema = new mongoose.Schema(
 );
 
 // ======================================================
-// DOCTOR SCHEMA
+// DOCTOR
 // ======================================================
 
 const doctorSchema = new mongoose.Schema(
   {
     // --------------------------------------------------
-    // USER REFERENCE
+    // USER
     // --------------------------------------------------
 
     userId: {
@@ -107,7 +107,7 @@ const doctorSchema = new mongoose.Schema(
 
     verificationStatus: {
       type: String,
-      enum: ["PENDING", "APPROVED", "REJECTED"],
+      enum: ["PENDING", "APPROVED", "REJECTED", "SUSPENDED", "CORRECTION_REQUESTED"],
       default: "PENDING",
       index: true,
     },
@@ -145,6 +145,17 @@ const doctorSchema = new mongoose.Schema(
     },
 
     // --------------------------------------------------
+    // ATOMIC BOOKING LOCK
+    // --------------------------------------------------
+
+    activeBookingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Booking",
+      default: null,
+      index: true,
+    },
+
+    // --------------------------------------------------
     // SERVICE AREA
     // --------------------------------------------------
 
@@ -167,7 +178,18 @@ const doctorSchema = new mongoose.Schema(
     },
 
     // --------------------------------------------------
-    // DOCTOR LOCATION
+    // RESPONSE RELIABILITY
+    // --------------------------------------------------
+
+    responseReliability: {
+      type: Number,
+      default: 0.8,
+      min: 0,
+      max: 1,
+    },
+
+    // --------------------------------------------------
+    // LOCATION
     // --------------------------------------------------
 
     location: {
@@ -206,6 +228,7 @@ doctorSchema.index({
   specialization: 1,
   verificationStatus: 1,
 });
+
 
 // ======================================================
 // MODEL

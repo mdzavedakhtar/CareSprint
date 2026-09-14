@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import {
   MapPin,
   Navigation,
   CheckCircle2,
   Stethoscope,
+  AlertTriangle,
+  Radio,
 } from "lucide-react";
+
+import { doctorAPI } from "../../services/api";
 
 import {
   updateVisitStatus,
@@ -13,28 +17,57 @@ import {
 } from "../../api/doctorApi";
 
 const Visit = ({ booking }) => {
-  const [status, setStatus] =
-    useState(booking?.status);
+  const [status, setStatus] = useState(booking?.status);
+  const [saving, setSaving] = useState(false);
+  const [gpsStatus, setGpsStatus] = useState("idle");
 
-  const [saving, setSaving] =
-    useState(false);
+  const [diagnosis, setDiagnosis] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const [notes, setNotes] = useState("");
+  const [followUpAdvice, setFollowUpAdvice] = useState("");
+  const [medicines, setMedicines] = useState([
+    {
+      name: "",
+      dosage: "",
+      frequency: "",
+      duration: "",
+      instructions: "",
+    },
+  ]);
 
-  const [diagnosis, setDiagnosis] =
-    useState("");
+  useEffect(() => {
+    const activeTrackingStatuses = ["DOCTOR_ON_THE_WAY", "ARRIVED", "CONSULTATION"];
+    if (!activeTrackingStatuses.includes(status) || !navigator.geolocation) {
+      setGpsStatus("idle");
+      return;
+    }
 
-  const [instructions, setInstructions] =
-    useState("");
+    setGpsStatus("active");
 
-  const [medicines, setMedicines] =
-    useState([
-      {
-        name: "",
-        dosage: "",
-        frequency: "",
-        duration: "",
-        instructions: "",
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        const { longitude, latitude } = position.coords;
+        doctorAPI.updateLocation({ longitude, latitude }).catch(() => {});
+        setGpsStatus("active");
       },
-    ]);
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          setGpsStatus("denied");
+        } else {
+          setGpsStatus("error");
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000,
+      }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [status]);
 
   if (!booking) {
     return (
@@ -132,14 +165,18 @@ const Visit = ({ booking }) => {
             diagnosis,
             medicines: validMedicines,
             instructions,
+            notes,
+            followUpAdvice,
           }
         );
 
       if (result.success) {
         alert(
-          "Prescription created successfully"
+          "Digital prescription saved successfully!"
         );
       }
+    } catch (err) {
+      alert("Error saving prescription: " + (err.response?.data?.message || err.message));
     } finally {
       setSaving(false);
     }
@@ -147,14 +184,32 @@ const Visit = ({ booking }) => {
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div>
-        <p className="text-sm text-blue-600 font-medium">
-          Active Visit
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-blue-600 font-medium">
+            Active Visit
+          </p>
 
-        <h1 className="text-3xl font-bold text-slate-900 mt-1">
-          Patient Consultation
-        </h1>
+          <h1 className="text-3xl font-bold text-slate-900 mt-1">
+            Patient Consultation
+          </h1>
+        </div>
+
+        {gpsStatus === "active" && (
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            Live GPS Broadcasting Active
+          </span>
+        )}
+        {gpsStatus === "denied" && (
+          <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-800 text-xs font-semibold border border-amber-200">
+            <AlertTriangle size={14} className="text-amber-600" />
+            GPS Permission Denied (Enable location for live tracking)
+          </span>
+        )}
       </div>
 
       <div className="bg-white border border-slate-200 rounded-2xl p-6">
@@ -373,10 +428,37 @@ const Visit = ({ booking }) => {
                   e.target.value
                 )
               }
-              rows={4}
-              className="mt-2 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-blue-500"
-              placeholder="Enter patient instructions..."
+              rows={3}
+              className="mt-2 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-blue-500 text-sm"
+              placeholder="Enter patient instructions (diet, dosage timing, precautions)..."
             />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div>
+              <label className="text-sm font-medium text-slate-700">
+                Follow-Up Advice
+              </label>
+              <textarea
+                value={followUpAdvice}
+                onChange={(e) => setFollowUpAdvice(e.target.value)}
+                rows={2}
+                className="mt-2 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-blue-500 text-sm"
+                placeholder="e.g. Return after 5 days or if fever persists..."
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-slate-700">
+                Private Doctor Notes
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                className="mt-2 w-full rounded-xl border border-slate-200 p-3 outline-none focus:border-blue-500 text-sm"
+                placeholder="Additional clinical notes..."
+              />
+            </div>
           </div>
 
           <div className="mt-6 flex flex-col sm:flex-row gap-3">

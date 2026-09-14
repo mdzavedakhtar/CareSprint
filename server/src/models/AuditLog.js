@@ -8,10 +8,33 @@ const auditLogSchema = new mongoose.Schema(
       default: null,
     },
 
+    actor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    role: {
+      type: String,
+      enum: ["PATIENT", "DOCTOR", "ADMIN", "SYSTEM"],
+      default: "SYSTEM",
+    },
+
     action: {
       type: String,
       required: true,
       trim: true,
+    },
+
+    entity: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    entityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
     },
 
     resource: {

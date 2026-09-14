@@ -34,6 +34,16 @@ const registerDoctor = async (req, res, next) => {
       });
     }
 
+    const cleanLicense = licenseNumber.trim().toUpperCase();
+    const licenseRegex = /^[A-Z0-9-]{5,30}$/;
+
+    if (!licenseRegex.test(cleanLicense)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid medical license number format (minimum 5 alphanumeric characters)",
+      });
+    }
+
     const existingUser = await User.findOne({
       $or: [{ email: email.toLowerCase() }, { phone }],
     });
@@ -65,7 +75,7 @@ const registerDoctor = async (req, res, next) => {
       password: hashedPassword,
       role: "DOCTOR",
       address,
-      isVerified: true,
+      isVerified: false,
     });
 
     await Doctor.create({

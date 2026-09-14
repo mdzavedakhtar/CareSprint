@@ -7,34 +7,38 @@ const mongoose = require("mongoose");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const doctorRoutes = require("./routes/doctorRoutes");
+const patientRoutes = require("./routes/patientRoutes");
+const matchingRoutes = require("./routes/matchingRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const { sanitizeNoSQL } = require("./middleware/sanitize");
 
 require("./models");
 
 const app = express();
 
 // ==========================================
-// Security
+// Security & Headers
 // ==========================================
 
 app.use(helmet());
 
-// ==========================================
-// CORS
-// ==========================================
-
+// Strict CORS Configuration
+const allowedOrigin = process.env.CLIENT_URL || "http://localhost:5173";
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: allowedOrigin,
     credentials: true,
   })
 );
 
 // ==========================================
-// Body Parser
+// Body Parser & NoSQL Injection Protection
 // ==========================================
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(sanitizeNoSQL);
 
 // ==========================================
 // Cookies
@@ -58,8 +62,28 @@ app.use("/api", limiter);
 app.use("/api/v1/auth", authRoutes);
 
 app.use(
+  "/api/v1/patient",
+  patientRoutes
+);
+
+app.use(
   "/api/v1/doctor",
   doctorRoutes
+);
+
+app.use(
+  "/api/v1/matching",
+  matchingRoutes
+);
+
+app.use(
+  "/api/v1/payment",
+  paymentRoutes
+);
+
+app.use(
+  "/api/v1/notifications",
+  notificationRoutes
 );
 
 // ==========================================
@@ -115,12 +139,16 @@ app.use((req, res) => {
 // Global Error Handler
 // ==========================================
 
-app.use((err, req, res, next) => {
-  console.error(err);
+app.use((err, req, res, _next) => {
+  console.error("[ServerError]:", err.message || err);
 
-  res.status(err.statusCode || 500).json({
+  const statusCode = err.statusCode || err.status || 500;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  res.status(statusCode).json({
     success: false,
-    message: err.message || "Internal server error",
+    message: isProduction && statusCode === 500 ? "Internal server error" : (err.message || "Internal server error"),
+    ...(isProduction ? {} : { stack: err.stack }),
   });
 });
 

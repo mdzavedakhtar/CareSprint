@@ -29,6 +29,7 @@ import ConsultationHistory from "../pages/patient/ConsultationHistory";
 import Prescription from "../pages/patient/Prescription";
 import Profile from "../pages/patient/Profile";
 import Reviews from "../pages/patient/Reviews";
+import Notifications from "../pages/patient/Notifications";
 
 // =========================
 // Doctor
@@ -141,6 +142,11 @@ const AppRoutes = () => {
             />
 
             <Route
+              path="tracking/:bookingId"
+              element={<LiveTracking />}
+            />
+
+            <Route
               path="history"
               element={<ConsultationHistory />}
             />
@@ -160,6 +166,10 @@ const AppRoutes = () => {
               element={<Reviews />}
             />
 
+            <Route
+              path="notifications"
+              element={<Notifications />}
+            />
           </Route>
         </Route>
 

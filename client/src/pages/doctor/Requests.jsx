@@ -54,7 +54,29 @@ const Requests = () => {
   // ======================================================
 
   useEffect(() => {
-    loadRequests();
+    let ignore = false;
+    getDoctorRequests()
+      .then((result) => {
+        if (!ignore && result.success) {
+          setRequests(result.requests || []);
+        } else if (!ignore) {
+          setError(result.message || "Unable to load requests");
+        }
+      })
+      .catch((err) => {
+        if (!ignore) {
+          setError(
+            err.response?.data?.message ||
+              "Unable to load requests"
+          );
+        }
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   // ======================================================

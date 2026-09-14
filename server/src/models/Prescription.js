@@ -62,6 +62,20 @@ const prescriptionSchema = new mongoose.Schema(
       maxlength: 3000,
     },
 
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: 3000,
+      default: null,
+    },
+
+    followUpAdvice: {
+      type: String,
+      trim: true,
+      maxlength: 2000,
+      default: null,
+    },
+
     followUpDate: {
       type: Date,
       default: null,
